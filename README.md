@@ -16,3 +16,10 @@ The objective of the project is to get the following information from original N
 * WinSCP
 * Putty
 * AWS - EC2, S3 Storage
+
+# Repository Content
+* Data Folder -- Contains all the NCDC Record gz files for the project
+* Jar Files Folder -- Contains all the jar files required for the Hadoop
+* Java Files Folder -- contains all the java files required for the functions
+* Code -- Contains all code in Hadoop, Hive and Pig for the whole procedure
+* Output Files -- Max Temp, Min Temp and Avg Temp are the output screen shots of the process.
