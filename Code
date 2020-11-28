@@ -1,0 +1,67 @@
+# Mapper and Reducer application code to retrieve Year and Temperature from original NCDC records
+
+javac -classpath /home/student75/hadoop-common-2.6.1.jar:/home/student75/hadoop-mapreduce-client-core-2.6.1.jar:/home/student75/commons-cli-2.0.jar -d . YearTemperatureMounika.java YearTemperatureMounikaMapper.java YearTemperatureMounikaReducer.java 
+
+jar -cvf YearTemperatureMounika.jar ./YearTemperatureMounika*.class
+
+hadoop fs -mkdir /user/c75student75
+
+hdfs dfs -copyFromLocal CourseProjectData /user/c75student75/CourseProjectData 
+
+hadoop jar /home/student75/YearTemperatureMounika.jar YearTemperatureMounika /user/c75student75/CourseProjectData /user/c75student75/Project_Output/
+
+hdfs dfs -ls /user/c75student75/Project_Output/
+
+hdfs dfs -cat /user/c75student75/Project_Output/part-r-00000
+
+hdfs dfs -copyToLocal /user/c75student75/Project_Output/part-r-00000 /home/student75
+
+hdfs dfs -copyFromLocal TemperatureFiles.txt /user/c75student75/TemperatureFiles.txt
+
+hdfs dfs -ls /user/c75student75/
+
+
+
+
+# Load the text file into Pig and get the highest and lowest temperatures for each year
+
+pig -x local
+
+record = LOAD 'TemperatureFiles.txt' AS (year:chararray, temperature:int);
+
+record_filtered = FILTER record BY temperature != 9999;
+
+DUMP record_filtered;
+
+record_grouped = GROUP record_filtered BY year;
+
+DUMP record_grouped;
+
+maximum_temperature = FOREACH record_grouped GENERATE group, MAX(record_filtered.temperature);
+
+DUMP maximum_temperature;
+
+minimum_temperature = FOREACH record_grouped GENERATE group, MIN(record_filtered.temperature);
+
+DUMP minimum_temperature;
+
+
+
+# Load the text file into Hive and get the average temperature for each year
+
+ls -l | grep meta
+mv metastore_db metastore_db.old
+
+schematool -dbType derby -initSchema
+
+hive
+
+Drop table if exists project_records_student75;
+
+CREATE TABLE project_records_student75 (year STRING, temperature INT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t';
+
+load data local inpath 'TemperatureFiles.txt' overwrite into table project_records_student75;
+
+SELECT year, round(AVG(temperature),2) FROM project_records_student75 WHERE temperature != 9999 GROUP BY year;
